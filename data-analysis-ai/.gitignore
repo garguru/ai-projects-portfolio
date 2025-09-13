@@ -8,3 +8,22 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Results and outputs (can be regenerated)
+results/data/
+results/figures/
+*.log
+analysis_report.md
+
+# Data files (keep raw data, exclude processed)
+data/processed/
+
+# Keep directory structure
+!results/.gitkeep
+!data/processed/.gitkeep
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
