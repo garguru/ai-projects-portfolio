@@ -20,7 +20,9 @@
       "Bash(cat:*)",
       "mcp__playwright__*",
       "Bash(git checkout:*)",
-      "Read(//c/Users/mgarr/_PROJECTS/deeplearningai_rag/**)"
+      "Read(//c/Users/mgarr/_PROJECTS/deeplearningai_rag/**)",
+      "Bash(git worktree:*)",
+      "Read(//c/Users/mgarr/_PROJECTS/**)"
     ],
     "deny": [],
     "ask": []
