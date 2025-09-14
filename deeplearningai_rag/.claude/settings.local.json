@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/mgarr/Pictures/Screenshots/**)",
+      "Read(//c/Users/mgarr/AppData/Roaming/Claude/**)",
+      "Bash(claude mcp add:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(curl:*)",
+      "Bash(dir C:Usersmgarr_PROJECTSdeeplearningai_ragbackend)",
+      "Bash(uv run pytest:*)",
+      "Bash(git pull:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(rm:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

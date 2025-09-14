@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tar:*)",
+      "Bash(dir)",
+      "Bash(copy:*)",
+      "Bash(powershell:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(uv pip install:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv add:*)",
+      "Bash(uv pip:*)",
+      "Bash(uv run:*)",
+      "Read(//c/Users/mgarr/_PROJECTS/deeplearningai_rag/**)",
+      "Read(//c/Users/mgarr/Pictures/Screenshots/**)",
+      "Bash(dir:*)",
+      "Bash(curl:*)",
+      "Bash(start http://localhost:8000)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

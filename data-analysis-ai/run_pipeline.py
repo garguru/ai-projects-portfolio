@@ -88,9 +88,13 @@ def run_crypto_analysis():
             recommendation = analyzer.ai_trading_recommendation(symbol)
             logger.info(f"Trading recommendation for {symbol}: {recommendation}")
 
-        # Create visualizations
+        # Create interactive visualizations
+        analyzer.create_interactive_dashboard()
+        logger.info(f"Interactive dashboard saved to project root")
+
+        # Also create traditional static charts
         analyzer.create_advanced_dashboard()
-        logger.info(f"Dashboard saved to {FIGURES_DIR}")
+        logger.info(f"Static dashboard saved to {FIGURES_DIR}")
 
         return analyzer
 

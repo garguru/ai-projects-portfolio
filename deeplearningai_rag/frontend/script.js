@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     courseTitles = document.getElementById('courseTitles');
     newChatButton = document.getElementById('newChatButton');
     themeToggle = document.getElementById('themeToggle');
-    
+
     setupEventListeners();
     initializeTheme();
     createNewSession();
@@ -31,21 +31,21 @@ function setupEventListeners() {
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
-    
+
     // New chat button
-    newChatButton.addEventListener('click', startNewChat);
-    
-    // Theme toggle
+    if (newChatButton) {
+        newChatButton.addEventListener('click', startNewChat);
+
+    // Theme toggle functionality
     themeToggle.addEventListener('click', toggleTheme);
-    
-    // Keyboard shortcut for theme toggle (Ctrl/Cmd + Shift + T)
-    document.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'T') {
+    themeToggle.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             toggleTheme();
         }
     });
-    
+    }
+
     // Suggested questions
     document.querySelectorAll('.suggested-item').forEach(button => {
         button.addEventListener('click', (e) => {
@@ -201,7 +201,7 @@ async function createNewSession() {
     chatInput.value = '';
     chatInput.disabled = false;
     sendButton.disabled = false;
-    addMessage('Welcome to the Course Materials Assistant! I can help you with questions about courses, lessons and specific content. What would you like to know?', 'assistant', null, null, true);
+    // Don't show welcome message initially in the new design
 }
 
 // Load course statistics
@@ -256,14 +256,55 @@ function toggleTheme() {
 }
 
 function setTheme(theme) {
-    if (theme === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
-        themeToggle.setAttribute('aria-label', 'Switch to dark theme');
-    } else {
-        document.documentElement.removeAttribute('data-theme');
-        themeToggle.setAttribute('aria-label', 'Switch to light theme');
+    // Removed theme toggle functionality for minimalist design
+    // Always use light theme like Oboe
+}
+
+// Show course statistics when "Learn about CourseAI" is clicked
+function showCourseStats() {
+    const statsSection = document.querySelector('.stats-section');
+    if (statsSection) {
+        statsSection.style.display = 'block';
+        statsSection.scrollIntoView({ behavior: 'smooth' });
     }
-    
-    // Save theme preference
-    localStorage.setItem('theme', theme);
+}
+
+// Show how it works explanation
+function showHowItWorks() {
+    const message = "Simply type your question about courses, lessons, or content. I'll search through all available course materials and provide you with relevant information and sources.";
+
+    // Show chat area and add explanation message
+    chatMessages.style.display = 'block';
+    addMessage(message, 'assistant');
+
+    // Scroll to chat area
+    chatMessages.scrollIntoView({ behavior: 'smooth' });
+}
+
+// The startNewChat function is already defined above at line 164
+
+// Theme Management
+function initializeTheme() {
+    // Check for saved theme preference or default to light mode
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+
+    // Update aria-label for accessibility
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.setAttribute('aria-label',
+            newTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
+        );
+        themeToggle.setAttribute('title',
+            newTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
+        );
+    }
 }

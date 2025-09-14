@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSS Test</title>
+    <style>
+        body {
+            background: #333;
+            padding: 50px;
+            font-family: Arial;
+        }
+
+        .test-box {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+
+        /* Your actual suggested-item styles */
+        .suggested-item {
+            padding: 0.75rem;
+            background: rgb(252, 250, 248); /* warm-background */
+            border: 1px solid rgb(229, 231, 235);
+            border-radius: 4px;
+            color: rgb(36, 41, 41);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            line-height: 1.3;
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .suggested-item:hover {
+            background-color: white;
+            border-color: rgb(107, 114, 128);
+            transform: translateX(2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* The tan color that should NOT appear on suggested items */
+        .tan-example {
+            background-color: rgb(217, 199, 178);
+            padding: 20px;
+            margin: 20px 0;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-box" style="background: white;">
+        <h2>Suggested Query Buttons (should NOT be tan on hover):</h2>
+        <button class="suggested-item">Outline of a course</button>
+        <button class="suggested-item">Courses about Chatbot</button>
+        <button class="suggested-item">Courses explaining RAG</button>
+    </div>
+
+    <div class="tan-example">
+        <h2>This is the TAN color (rgb(217, 199, 178))</h2>
+        <p>User message bubbles use this color, but suggested items should NOT.</p>
+    </div>
+</body>
+</html>

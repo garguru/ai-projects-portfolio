@@ -7,17 +7,17 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Course Materials Assistant</title>
-    <link rel="stylesheet" href="style.css?v=9">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=1757804648">
 </head>
 <body>
     <div class="container">
+        <!-- Clean header with theme toggle -->
         <header>
             <div class="header-content">
-                <div class="header-text">
-                    <h1>Course Materials Assistant</h1>
-                    <p class="subtitle">Ask questions about courses, instructors, and content</p>
-                </div>
-                <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+                <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
                     <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
                         <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -36,21 +36,29 @@
             </div>
         </header>
 
-        <div class="main-content">
-            <!-- Left Sidebar -->
+        <!-- Main content with sidebar restored -->
+        <div class="app-layout">
+            <!-- Functional sidebar with Oboe aesthetics -->
             <aside class="sidebar">
+                <!-- Logo in sidebar -->
+                <div class="sidebar-header">
+                    <div class="logo-small">
+                        <span class="logo-main">Course</span><span class="logo-accent">AI</span>
+                    </div>
+                </div>
+
                 <!-- New Chat Button -->
                 <div class="sidebar-section">
-                    <button id="newChatButton" class="new-chat-button">+ NEW CHAT</button>
+                    <button id="newChatButton" class="new-chat-button">+ New Chat</button>
                 </div>
 
                 <!-- Course Stats -->
                 <div class="sidebar-section">
-                    <details class="stats-collapsible">
-                        <summary class="stats-header">Courses</summary>
+                    <details class="stats-collapsible" open>
+                        <summary class="stats-header">Available Courses</summary>
                         <div class="course-stats" id="courseStats">
                             <div class="stat-item">
-                                <span class="stat-label">Number of courses:</span>
+                                <span class="stat-label">Total courses:</span>
                                 <span class="stat-value" id="totalCourses">-</span>
                             </div>
                             <div class="stat-item">
@@ -64,7 +72,7 @@
 
                 <!-- Suggested Questions -->
                 <div class="sidebar-section">
-                    <details class="suggested-collapsible">
+                    <details class="suggested-collapsible" open>
                         <summary class="suggested-header">Try asking:</summary>
                         <div class="suggested-items">
                             <button class="suggested-item" data-question="What is the outline of the &quot;MCP: Build Rich-Context AI Apps with Anthropic&quot; course?">Outline of a course</button>
@@ -76,19 +84,28 @@
                 </div>
             </aside>
 
-            <!-- Main Chat Area -->
-            <main class="chat-main">
-                <div class="chat-container">
-                    <div id="chatMessages" class="chat-messages"></div>
-                    <div class="chat-input-container">
-                        <input 
-                            type="text" 
-                            id="chatInput" 
+            <!-- Main content area -->
+            <main class="main-content">
+                <!-- Welcome hero section -->
+                <div class="welcome-section">
+                    <h1 class="main-title">The easiest way to learn about courses</h1>
+                    <p class="main-subtitle">Ask questions about courses, lessons, and content</p>
+                </div>
+
+                <!-- Chat messages area -->
+                <div id="chatMessages" class="chat-messages"></div>
+
+                <!-- Input section at bottom -->
+                <div class="input-section">
+                    <div class="input-container">
+                        <input
+                            type="text"
+                            id="chatInput"
                             placeholder="Ask about courses, lessons, or specific content..."
                             autocomplete="off"
                         >
-                        <button id="sendButton">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <button id="sendButton" class="submit-button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="22" y1="2" x2="11" y2="13"></line>
                                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                             </svg>
@@ -99,8 +116,7 @@
         </div>
     </div>
 
-
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="script.js?v=9"></script>
+    <script src="script.js?v=1757804648"></script>
 </body>
 </html>

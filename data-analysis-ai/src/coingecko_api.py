@@ -9,7 +9,29 @@ import numpy as np
 from datetime import datetime, timedelta
 import time
 import json
+import logging
 from typing import Dict, List, Optional
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from pydantic import BaseModel, field_validator
+
+# Simple data validation models
+class CoinData(BaseModel):
+    """Validate basic coin data structure"""
+    name: str
+    symbol: str
+    current_price: float
+    market_cap: float
+    volume_24h: float
+
+    @field_validator('current_price', 'market_cap', 'volume_24h')
+    @classmethod
+    def validate_positive_numbers(cls, v):
+        if v is None or v < 0:
+            raise ValueError('Financial data must be positive')
+        return v
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 class CoinGeckoAnalyzer:
     """
@@ -22,21 +44,46 @@ class CoinGeckoAnalyzer:
         self.session = requests.Session()
         self.data_cache = {}
         
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        retry=retry_if_exception_type((requests.exceptions.RequestException, requests.exceptions.Timeout))
+    )
     def _make_request(self, endpoint: str, params: dict = None) -> dict:
-        """Make API request with error handling"""
+        """Make API request with robust error handling and retry logic"""
         url = f"{self.base_url}/{endpoint}"
         try:
-            response = self.session.get(url, params=params)
+            logger.info(f"Making request to: {endpoint}")
+            response = self.session.get(url, params=params, timeout=30)
             response.raise_for_status()
-            
+
             # Rate limiting (be nice to free API)
-            time.sleep(1)  
-            
-            return response.json()
+            time.sleep(1)
+
+            data = response.json()
+            logger.info(f"Successfully fetched data from {endpoint}")
+            return data
+
         except requests.exceptions.RequestException as e:
-            print(f"[ERROR] API Error: {e}")
+            logger.error(f"API request failed for {endpoint}: {e}")
+            raise
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON response from {endpoint}: {e}")
             return {}
-    
+
+    def validate_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Simple data validation and cleaning"""
+        if df.empty:
+            return df
+
+        # Remove rows with null prices or negative values
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        df = df.dropna(subset=numeric_cols)
+        df = df[(df[numeric_cols] >= 0).all(axis=1)]
+
+        logger.info(f"Data validation complete. {len(df)} valid rows remaining")
+        return df
+
     def get_coin_list(self, limit: int = 100) -> pd.DataFrame:
         """Get list of top cryptocurrencies by market cap"""
         params = {
@@ -51,7 +98,8 @@ class CoinGeckoAnalyzer:
         
         if data:
             df = pd.DataFrame(data)
-            print(f"[OK] Fetched {len(df)} cryptocurrencies")
+            df = self.validate_dataframe(df)
+            logger.info(f"Fetched {len(df)} valid cryptocurrencies")
             return df
         return pd.DataFrame()
     

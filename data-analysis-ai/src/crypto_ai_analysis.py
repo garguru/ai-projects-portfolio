@@ -9,6 +9,12 @@ import yfinance as yf
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import seaborn as sns
+import plotly.graph_objects as go
+import plotly.subplots as sp
+from plotly.offline import plot
+import logging
+
+logger = logging.getLogger(__name__)
 
 class CryptoAIAnalyzer:
     """AI-powered crypto market analyzer"""
@@ -45,16 +51,51 @@ class CryptoAIAnalyzer:
         
         # Volatility
         df['Volatility'] = df['Close'].pct_change().rolling(window=7).std() * np.sqrt(365)
-        
-        # AI-like pattern detection
+
+        # Bollinger Bands
+        bb_period = 20
+        bb_std = 2
+        df['BB_Middle'] = df['Close'].rolling(window=bb_period).mean()
+        bb_std_dev = df['Close'].rolling(window=bb_period).std()
+        df['BB_Upper'] = df['BB_Middle'] + (bb_std_dev * bb_std)
+        df['BB_Lower'] = df['BB_Middle'] - (bb_std_dev * bb_std)
+
+        # MACD (Moving Average Convergence Divergence)
+        exp1 = df['Close'].ewm(span=12).mean()
+        exp2 = df['Close'].ewm(span=26).mean()
+        df['MACD'] = exp1 - exp2
+        df['MACD_Signal'] = df['MACD'].ewm(span=9).mean()
+        df['MACD_Histogram'] = df['MACD'] - df['MACD_Signal']
+
+        # AI-like pattern detection with enhanced signals
         df['Signal'] = 'HOLD'
         
-        # Buy signals (like knowing when ingredients are perfectly ripe)
-        buy_condition = (df['MA7'] > df['MA21']) & (df['RSI'] < 30)
+        # Enhanced Buy signals using multiple indicators
+        buy_condition = (
+            (df['MA7'] > df['MA21']) &  # Uptrend
+            (df['RSI'] < 40) &  # Not overbought (relaxed from 30)
+            (df['Close'] < df['BB_Lower']) &  # Below lower Bollinger Band (oversold)
+            (df['MACD'] > df['MACD_Signal'])  # MACD bullish crossover
+        )
         df.loc[buy_condition, 'Signal'] = 'BUY'
-        
-        # Sell signals
-        sell_condition = (df['MA7'] < df['MA21']) & (df['RSI'] > 70)
+
+        # Strong buy for multiple confirmations
+        strong_buy_condition = (
+            (df['MA7'] > df['MA21']) &
+            (df['RSI'] < 30) &
+            (df['Close'] < df['BB_Lower']) &
+            (df['MACD'] > df['MACD_Signal']) &
+            (df['MACD_Histogram'] > 0)
+        )
+        df.loc[strong_buy_condition, 'Signal'] = 'STRONG_BUY'
+
+        # Enhanced Sell signals
+        sell_condition = (
+            (df['MA7'] < df['MA21']) &  # Downtrend
+            (df['RSI'] > 60) &  # Overbought (relaxed from 70)
+            (df['Close'] > df['BB_Upper']) &  # Above upper Bollinger Band (overbought)
+            (df['MACD'] < df['MACD_Signal'])  # MACD bearish crossover
+        )
         df.loc[sell_condition, 'Signal'] = 'SELL'
         
         self.data[symbol] = df
@@ -122,8 +163,100 @@ class CryptoAIAnalyzer:
         plt.tight_layout()
         plt.savefig(f'{symbol}_analysis.png')
         plt.show()
-        
+
         print(f"📊 Analysis chart saved as '{symbol}_analysis.png'")
+
+    def create_interactive_dashboard(self, symbol='BTC-USD'):
+        """Create interactive Plotly dashboard"""
+        if symbol not in self.data:
+            logger.error(f"No data available for {symbol}")
+            return
+
+        df = self.data[symbol]
+
+        # Create subplots
+        fig = sp.make_subplots(
+            rows=3, cols=1,
+            subplot_titles=['Price & Moving Averages', 'RSI Indicator', 'Volume'],
+            vertical_spacing=0.05,
+            shared_xaxes=True,
+            row_heights=[0.5, 0.25, 0.25]
+        )
+
+        # Price and moving averages
+        fig.add_trace(
+            go.Scatter(
+                x=df.index, y=df['Close'],
+                name='Close Price',
+                line=dict(color='#1f77b4', width=2),
+                hovertemplate='Price: $%{y:.2f}<br>Date: %{x}<extra></extra>'
+            ), row=1, col=1
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=df.index, y=df['MA7'],
+                name='MA7',
+                line=dict(color='orange', width=1),
+                opacity=0.7
+            ), row=1, col=1
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=df.index, y=df['MA21'],
+                name='MA21',
+                line=dict(color='red', width=1),
+                opacity=0.7
+            ), row=1, col=1
+        )
+
+        # RSI
+        fig.add_trace(
+            go.Scatter(
+                x=df.index, y=df['RSI'],
+                name='RSI',
+                line=dict(color='purple', width=2),
+                hovertemplate='RSI: %{y:.1f}<br>Date: %{x}<extra></extra>'
+            ), row=2, col=1
+        )
+
+        # RSI reference lines
+        fig.add_hline(y=70, line_dash="dash", line_color="red", opacity=0.5, row=2, col=1)
+        fig.add_hline(y=30, line_dash="dash", line_color="green", opacity=0.5, row=2, col=1)
+
+        # Volume
+        fig.add_trace(
+            go.Bar(
+                x=df.index, y=df['Volume'],
+                name='Volume',
+                marker_color='lightblue',
+                opacity=0.6
+            ), row=3, col=1
+        )
+
+        # Update layout
+        fig.update_layout(
+            title=f'{symbol} Interactive Analysis Dashboard',
+            height=800,
+            showlegend=True,
+            template='plotly_white'
+        )
+
+        # Update x-axes
+        fig.update_xaxes(title_text="Date", row=3, col=1)
+
+        # Update y-axes
+        fig.update_yaxes(title_text="Price ($)", row=1, col=1)
+        fig.update_yaxes(title_text="RSI", row=2, col=1, range=[0, 100])
+        fig.update_yaxes(title_text="Volume", row=3, col=1)
+
+        # Save as HTML
+        filename = f'{symbol}_interactive_dashboard.html'
+        plot(fig, filename=filename, auto_open=False)
+        logger.info(f"Interactive dashboard saved as {filename}")
+
+        return fig
     
     def ai_trading_recommendation(self, symbol='BTC-USD', investment=1000):
         """Generate AI trading recommendation"""
@@ -175,8 +308,11 @@ if __name__ == "__main__":
     for insight in insights:
         print(f"  {insight}")
     
-    # Visualize
+    # Create interactive dashboard
+    analyzer.create_interactive_dashboard('BTC-USD')
+
+    # Also create static visualization for comparison
     analyzer.visualize_analysis('BTC-USD')
-    
+
     # Get trading recommendation
     analyzer.ai_trading_recommendation('BTC-USD', investment=1000)

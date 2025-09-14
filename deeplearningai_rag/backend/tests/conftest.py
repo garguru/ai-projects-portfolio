@@ -231,6 +231,134 @@ def mock_chroma_collection():
     return mock
 
 
+# Additional test fixtures for enhanced testing
+
+@pytest.fixture
+def real_app_client():
+    """Create a client for the real app but with mocked dependencies to avoid static file issues"""
+    import tempfile
+    import shutil
+    from unittest.mock import patch, Mock
+
+    # Create temporary directory for testing
+    temp_dir = tempfile.mkdtemp()
+
+    try:
+        with patch('app.rag_system') as mock_rag:
+            # Configure comprehensive mock
+            mock_rag.query.return_value = (
+                "Comprehensive test response with detailed information.",
+                ["Test Course - Lesson 1", "Test Course - Lesson 2"],
+                ["https://example.com/lesson1", "https://example.com/lesson2"]
+            )
+            mock_rag.get_course_analytics.return_value = {
+                "total_courses": 4,
+                "course_titles": [
+                    "Building Towards Computer Use with Anthropic",
+                    "MCP: Build Rich-Context AI Apps with Anthropic",
+                    "Advanced Retrieval for AI with Chroma",
+                    "Prompt Compression and Query Optimization"
+                ]
+            }
+            mock_rag.session_manager.create_session.return_value = "real-app-session-789"
+            mock_rag.session_manager.clear_session.return_value = None
+
+            # Patch static file mounting to avoid filesystem issues
+            with patch('fastapi.staticfiles.StaticFiles'):
+                from app import app
+                client = TestClient(app)
+                yield client
+
+    finally:
+        # Cleanup
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+@pytest.fixture
+def api_test_data():
+    """Comprehensive test data for API endpoint testing"""
+    return {
+        "valid_queries": [
+            "What is computer use in AI?",
+            "Tell me about the MCP course",
+            "How many lessons are in the course?",
+            "What are the prerequisites?",
+            ""  # Empty query should be handled gracefully
+        ],
+        "invalid_queries": [
+            None,  # None query
+            123,   # Non-string query
+            {"not": "string"},  # Object instead of string
+        ],
+        "session_ids": [
+            "valid-session-123",
+            "another-session-456",
+            None,  # Should create new session
+            "",    # Empty session ID
+        ],
+        "expected_responses": {
+            "query": {
+                "required_fields": ["answer", "sources", "source_links", "session_id"],
+                "types": {
+                    "answer": str,
+                    "sources": list,
+                    "source_links": list,
+                    "session_id": str
+                }
+            },
+            "courses": {
+                "required_fields": ["total_courses", "course_titles"],
+                "types": {
+                    "total_courses": int,
+                    "course_titles": list
+                }
+            }
+        }
+    }
+
+
+@pytest.fixture
+def mock_dependencies():
+    """Mock all external dependencies for isolated testing"""
+    mocks = {}
+
+    # Mock ChromaDB
+    mocks['chroma'] = Mock()
+    mocks['chroma'].query.return_value = {
+        "documents": [["Test document content"]],
+        "metadatas": [[{"course_title": "Test Course", "lesson_number": 1}]],
+        "distances": [[0.1]]
+    }
+
+    # Mock Anthropic client
+    mocks['anthropic'] = Mock()
+    mock_response = Mock()
+    mock_response.content = [Mock()]
+    mock_response.content[0].text = "Mock AI response"
+    mock_response.stop_reason = "end_turn"
+    mocks['anthropic'].messages.create.return_value = mock_response
+
+    # Mock sentence transformers
+    mocks['embeddings'] = Mock()
+    mocks['embeddings'].encode.return_value = [[0.1, 0.2, 0.3]]
+
+    return mocks
+
+
+@pytest.fixture(scope="session")
+def test_database():
+    """Session-scoped test database fixture"""
+    import tempfile
+    import shutil
+
+    temp_dir = tempfile.mkdtemp(prefix="test_chroma_")
+
+    yield temp_dir
+
+    # Cleanup after all tests
+    shutil.rmtree(temp_dir, ignore_errors=True)
+
+
 # Test data constants
 SAMPLE_COURSE_TEXT = """Course Title: Building Towards Computer Use with Anthropic
 Course Link: https://www.deeplearning.ai/short-courses/building-toward-computer-use-with-anthropic/

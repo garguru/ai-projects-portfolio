@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug New Chat</title>
+</head>
+<body>
+    <h1>New Chat Button Debug Test</h1>
+    <button id="testButton" onclick="testNewChat()">Test New Chat Function</button>
+    <div id="output"></div>
+
+    <script>
+        const API_URL = '/api';
+        let currentSessionId = 'test-session';
+
+        async function testNewChat() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<h3>Testing New Chat functionality...</h3>';
+
+            try {
+                // Test 1: Check if function exists
+                if (typeof startNewChat === 'function') {
+                    output.innerHTML += '<p>✅ startNewChat function exists</p>';
+                } else {
+                    output.innerHTML += '<p>❌ startNewChat function NOT found</p>';
+                }
+
+                // Test 2: Try to call the clear session API
+                output.innerHTML += '<p>Testing API call...</p>';
+
+                const response = await fetch(`${API_URL}/clear-session`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: currentSessionId
+                    })
+                });
+
+                if (response.ok) {
+                    output.innerHTML += '<p>✅ API call successful</p>';
+                } else {
+                    output.innerHTML += '<p>❌ API call failed: ' + response.status + '</p>';
+                }
+
+            } catch (error) {
+                output.innerHTML += '<p>❌ Error: ' + error.message + '</p>';
+            }
+        }
+
+        // Load the actual script.js
+        const script = document.createElement('script');
+        script.src = 'script.js?v=' + Date.now();
+        script.onload = function() {
+            document.getElementById('output').innerHTML += '<p>Script loaded. Click button to test.</p>';
+        };
+        document.head.appendChild(script);
+    </script>
+</body>
+</html>

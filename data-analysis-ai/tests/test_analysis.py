@@ -5,9 +5,11 @@ Demonstrates testing best practices
 
 import sys
 import unittest
+from unittest.mock import patch, MagicMock
 from pathlib import Path
 import pandas as pd
 import numpy as np
+import requests
 
 # Add project directories to path
 project_root = Path(__file__).parent.parent
@@ -15,6 +17,8 @@ sys.path.insert(0, str(project_root / "src"))
 sys.path.insert(0, str(project_root / "configs"))
 
 from config import ANALYSIS_CONFIG, PROJECT_ROOT
+from coingecko_api import CoinGeckoAnalyzer
+from crypto_ai_analysis import CryptoAIAnalyzer
 
 
 class TestConfiguration(unittest.TestCase):
@@ -149,6 +153,95 @@ class TestPipeline(unittest.TestCase):
         second_random = [np.random.random() for _ in range(5)]
 
         self.assertEqual(first_random, second_random)
+
+
+class TestEdgeCases(unittest.TestCase):
+    """Test edge cases and error scenarios"""
+
+    def setUp(self):
+        self.analyzer = CoinGeckoAnalyzer()
+        self.crypto_analyzer = CryptoAIAnalyzer()
+
+    def test_empty_dataframe_validation(self):
+        """Test data validation with empty DataFrame"""
+        empty_df = pd.DataFrame()
+        result = self.analyzer.validate_dataframe(empty_df)
+        self.assertTrue(result.empty)
+
+    def test_dataframe_with_nulls(self):
+        """Test data validation removes null values"""
+        df_with_nulls = pd.DataFrame({
+            'price': [100, None, 200, 300],
+            'volume': [1000, 2000, None, 4000]
+        })
+        result = self.analyzer.validate_dataframe(df_with_nulls)
+        # Should only keep the last row (300, 4000)
+        self.assertEqual(len(result), 1)
+
+    def test_dataframe_with_negative_values(self):
+        """Test data validation removes negative values"""
+        df_with_negatives = pd.DataFrame({
+            'price': [100, -50, 200, 300],
+            'volume': [1000, 2000, -100, 4000]
+        })
+        result = self.analyzer.validate_dataframe(df_with_negatives)
+        # Should only keep rows with all positive values
+        self.assertEqual(len(result), 2)  # First and last rows
+
+    @patch('requests.Session.get')
+    def test_api_request_failure(self, mock_get):
+        """Test API request failure handling"""
+        # Mock a failed request
+        mock_response = MagicMock()
+        mock_response.raise_for_status.side_effect = requests.exceptions.RequestException("API Error")
+        mock_get.return_value = mock_response
+
+        # Should handle the exception gracefully
+        with self.assertRaises(requests.exceptions.RequestException):
+            self.analyzer._make_request('test_endpoint')
+
+    def test_crypto_analyzer_with_empty_data(self):
+        """Test crypto analyzer handles empty data gracefully"""
+        # Test with no data
+        self.assertEqual(len(self.crypto_analyzer.data), 0)
+
+        # Should not crash when trying to analyze non-existent symbol
+        try:
+            result = self.crypto_analyzer.calculate_indicators('NONEXISTENT')
+            # Should return None or handle gracefully
+        except KeyError:
+            # Expected behavior - should not crash the application
+            pass
+
+    def test_technical_indicators_with_insufficient_data(self):
+        """Test technical indicators with insufficient data points"""
+        # Create minimal data (less than required for indicators)
+        short_data = pd.DataFrame({
+            'Close': [100, 101, 102],
+            'Volume': [1000, 1100, 1200],
+            'High': [101, 102, 103],
+            'Low': [99, 100, 101],
+            'Open': [100, 101, 102]
+        })
+
+        self.crypto_analyzer.data['TEST'] = short_data
+        result = self.crypto_analyzer.calculate_indicators('TEST')
+
+        # Should handle insufficient data gracefully
+        self.assertIsNotNone(result)
+
+    def test_price_validation_extreme_values(self):
+        """Test system handles extreme price values"""
+        extreme_data = pd.DataFrame({
+            'price': [0.000001, 1000000, 0, float('inf')],
+            'volume': [1000, 2000, 3000, 4000]
+        })
+
+        # Should handle extreme values appropriately
+        result = self.analyzer.validate_dataframe(extreme_data)
+        # Should remove inf values and zeros
+        self.assertFalse(any(np.isinf(result['price'])))
+        self.assertTrue(all(result['price'] > 0))
 
 
 def run_tests():
