@@ -18,7 +18,9 @@
       "Bash(timeout:*)",
       "Bash(dir \"C:\\Users\\mgarr\\_PROJECTS\\deeplearningai_rag\\.claude\\commands\")",
       "Bash(cat:*)",
-      "mcp__playwright__*"
+      "mcp__playwright__*",
+      "Bash(git checkout:*)",
+      "Read(//c/Users/mgarr/_PROJECTS/deeplearningai_rag/**)"
     ],
     "deny": [],
     "ask": []
