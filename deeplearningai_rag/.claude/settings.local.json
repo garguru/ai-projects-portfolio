@@ -19,8 +19,15 @@
       "Bash(dir \"C:\\Users\\mgarr\\_PROJECTS\\deeplearningai_rag\\.claude\\commands\")",
       "Bash(cat:*)",
       "mcp__playwright__*",
+<<<<<<< HEAD
       "Bash(mkdir:*)",
       "Bash(git worktree:*)"
+=======
+      "Bash(git checkout:*)",
+      "Read(//c/Users/mgarr/_PROJECTS/deeplearningai_rag/**)",
+      "Bash(git worktree:*)",
+      "Read(//c/Users/mgarr/_PROJECTS/**)"
+>>>>>>> quality_feature
     ],
     "deny": [],
     "ask": []
