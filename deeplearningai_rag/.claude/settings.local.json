@@ -17,7 +17,8 @@
       "Bash(uv run:*)",
       "Bash(timeout:*)",
       "Bash(dir \"C:\\Users\\mgarr\\_PROJECTS\\deeplearningai_rag\\.claude\\commands\")",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "mcp__playwright__*"
     ],
     "deny": [],
     "ask": []
