@@ -72,11 +72,9 @@ Provide only the direct answer to what was asked.
         """
 
         # Build system content efficiently - avoid string ops when possible
-        system_content = (
-            f"{self.SYSTEM_PROMPT}\n\nPrevious conversation:\n{conversation_history}"
-            if conversation_history
-            else self.SYSTEM_PROMPT
-        )
+        system_content = self.SYSTEM_PROMPT
+        if conversation_history and conversation_history.strip():
+            system_content = f"{self.SYSTEM_PROMPT}\n\nPrevious conversation:\n{conversation_history}"
 
         # Start with initial messages
         messages = [{"role": "user", "content": query}]
@@ -143,20 +141,23 @@ Provide only the direct answer to what was asked.
                         content_block.name, **content_block.input
                     )
 
+                    # Ensure tool result content is not empty
+                    result_content = tool_result if tool_result and str(tool_result).strip() else "No results found"
                     tool_results.append(
                         {
                             "type": "tool_result",
                             "tool_use_id": content_block.id,
-                            "content": tool_result,
+                            "content": result_content,
                         }
                     )
                 except Exception as e:
                     # Tool execution failed, stop rounds
+                    error_content = f"Error: Tool execution failed - {str(e)}"
                     tool_results.append(
                         {
                             "type": "tool_result",
                             "tool_use_id": content_block.id,
-                            "content": f"Error: Tool execution failed - {str(e)}",
+                            "content": error_content,
                         }
                     )
                     # Add tool results and signal to stop

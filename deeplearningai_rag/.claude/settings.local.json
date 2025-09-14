@@ -12,7 +12,12 @@
       "Bash(git pull:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(git push:*)",
+      "Bash(uv run:*)",
+      "Bash(timeout:*)",
+      "Bash(dir \"C:\\Users\\mgarr\\_PROJECTS\\deeplearningai_rag\\.claude\\commands\")",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
